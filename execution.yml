@@ -1,6 +1,6 @@
 ﻿execution:
    concurrency: 25
-   ramp-up: 1
+   ramp-up: 2
    hold-for: 1
    scenario: quick-test
 scenarios: 
