@@ -1,35 +1,31 @@
-pipeline {
-    agent any 
-    stages {
-        stage('Static Analysis') {
-            steps {
-                echo 'Run t to the code' 
-            }
+node {
+    def dockerImageTag = "meryemyousfi/ghm${env.BUILD_NUMBER}"
+    def networkName = "mynetwork"
+    def buildNumber = env.BUILD_NUMBER
+    def minikubeProfile = "minikube"
+
+    try {
+        stage('Clone Repo') {
+            git url: 'https://github.com/MeryemYOUSFI/test.git',
+            branch: 'master'
         }
-        stage('Compile') {
-            steps {
-                echo 'Compile the source code' 
-            }
+
+        stage('Docker Login') { 
+            sh "docker login -u meryemyousfi -p dckr_pat_U_J3qrskC990UBFwEjQA48W8EEA"
         }
-        stage('Security Check') {
-            steps {
-                echo 'Run the security check against the application' 
-            }
+
+        stage('Build Docker Images') {
+            docker.build("meryemyousfi/ghm:${buildNumber}")
+          
         }
-        stage('Run Unit Tests') {
-            steps {
-                echo 'Run unit tests from the source code' 
-            }
+
+        stage('Push Docker Images to Docker Hub') {
+            echo "Pushing Docker images to Docker Hub"
+            docker.image("meryemyousfi/ghm:${buildNumber}").push()
         }
-        stage('Run Integration Tests') {
-            steps {
-                echo 'Run only crucial integration tests from the source code' 
-            }
-        }
-        stage('Publish Artifacts') {
-            steps {
-                echo 'Save the assemblies generated from the compilation' 
-            }
-        }
+
+    } catch (Exception e) {
+        throw e
     }
 }
+
