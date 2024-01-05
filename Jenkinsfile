@@ -1,44 +1,31 @@
-pipeline {
-    environment {
-        registry = "meryemyousfi/ghm"
-        dockerImage = ''
-    }
+node {
+    def dockerImageTag = "meryemyousfi/ghm${env.BUILD_NUMBER}"
+    def networkName = "mynetwork"
+    def buildNumber = env.BUILD_NUMBER
+    def minikubeProfile = "minikube"
 
-    agent any
-
-    stages {
-        stage('Cloning our Git') {
-            steps {
-                script {
-                    git branch: 'master', url: 'https://github.com/MeryemYOUSFI/test.git'
-                }
-            }
+    try {
+        stage('Clone Repo') {
+            git url: 'https://github.com/MeryemYOUSFI/test.git',
+            branch: 'master'
         }
 
-        stage('Docker Login') {
-            steps {
-                script {
-                    sh "echo 'Logging into Docker Hub'"
-                    sh "docker login -u meryemyousfi -p dckr_pat_U_J3qrskC990UBFwEjQA48W8EEA"
-                }
-            }
+        stage('Docker Login') { 
+            sh "docker login -u meryemyousfi -p dckr_pat_U_J3qrskC990UBFwEjQA48W8EEA"
         }
 
-        stage('Building Docker Image') {
-            steps {
-                script {
-                    dockerImage = docker.build "${registry}:${BUILD_NUMBER}"
-                }
-            }
+        stage('Build Docker Images') {
+            docker.build("meryemyousfi/ghm:${buildNumber}", "-f Dockerfile .")
+          
         }
 
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    echo "Pushing Docker images to Docker Hub"
-                    docker.image("meryemyousfi/ghm:${BUILD_NUMBER}").push()
-                }
-            }
+        stage('Push Docker Images to Docker Hub') {
+            echo "Pushing Docker images to Docker Hub"
+            docker.image("meryemyousfi/ghm:${buildNumber}").push()
         }
+
+    } catch (Exception e) {
+        throw e
     }
 }
+
