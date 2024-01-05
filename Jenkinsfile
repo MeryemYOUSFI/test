@@ -1,34 +1,43 @@
 pipeline {
-    agent any 
+    environment {
+        registry = "meryemyousfi/ghm"
+        dockerImage = ''
+    }
+
+    agent any
+
     stages {
-        stage('Static Analysis') {
+        stage('Cloning our Git') {
             steps {
-                echo 'Run t to the code' 
+                script {
+                    git branch: 'master', url: 'https://github.com/MeryemYOUSFI/test.git'
+                }
             }
         }
-        stage('Compile') {
+
+        stage('Docker Login') {
             steps {
-                echo 'Compile the source code' 
+                script {
+                    sh "echo 'Logging into Docker Hub'"
+                    sh "docker login -u meryemyousfi -p dckr_pat_U_J3qrskC990UBFwEjQA48W8EEA"
+                    
+                }
             }
         }
-        stage('Security Check') {
+      stage('Building Docker Image') {
             steps {
-                echo 'Run the security check against the application' 
+                script {
+                    dockerImage = docker.build "${registry}:${BUILD_NUMBER}"
+                }
             }
         }
-        stage('Run Unit Tests') {
+        stage('Push Docker Image') {
             steps {
-                echo 'Run unit tests from the source code' 
-            }
-        }
-        stage('Run Integration Tests') {
-            steps {
-                echo 'Run only crucial integration tests from the source code' 
-            }
-        }
-        stage('Publish Artifacts') {
-            steps {
-                echo 'Save the assemblies generated from the compilation' 
+                script {
+                    echo "Pushing Docker images to Docker Hub"
+                        docker.image("meryemyousfi/ghm:${BUILD_NUMBER}").push()
+
+                }
             }
         }
     }
