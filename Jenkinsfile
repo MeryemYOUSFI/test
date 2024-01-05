@@ -25,20 +25,18 @@ pipeline {
             }
         }
       stage('Building Docker Image') {
-            steps {
-                script {
+                
                     dockerImage = docker.build "${registry}:${BUILD_NUMBER}"
-                }
-            }
+                
+            
         }
         stage('Push Docker Image') {
-            steps {
-                script {
+            
+                
                     echo "Pushing Docker images to Docker Hub"
                         docker.image("meryemyousfi/ghm:${BUILD_NUMBER}").push()
 
-                }
-            }
+               
         }
     }
 }
